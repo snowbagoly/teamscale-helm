@@ -1,12 +1,12 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: {{ .Values.name | quote }}
+  name: {{ tpl .Values.name_with_suffix . | quote }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
-    app: {{ .Values.name | quote }}
-    app.kubernetes.io/component: {{ .Values.name | quote }}
-    app.kubernetes.io/instance: {{ .Values.name | quote }}
+    app: {{ tpl .Values.name_with_suffix . | quote }}
+    app.kubernetes.io/component: {{ tpl .Values.name_with_suffix . | quote }}
+    app.kubernetes.io/instance: {{ tpl .Values.name_with_suffix . | quote }}
     app.kubernetes.io/part-of: teamscale-app
     app.openshift.io/runtime-namespace: {{ .Release.Namespace | quote }}
 spec:
@@ -17,20 +17,20 @@ spec:
     imageChangeParams:
       automatic: true
       containerNames:
-      - {{ .Values.name | quote }}
+      - {{ tpl .Values.name_with_suffix . | quote }}
       from:
         kind: ImageStreamTag
         name: {{ print .Values.image ":" .Values.image_version | quote }}
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.name | quote }}
+      app: {{ tpl .Values.name_with_suffix . | quote }}
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: {{ .Values.name | quote }}
-        deploymentconfig: {{ .Values.name | quote }}
+        app: {{ tpl .Values.name_with_suffix . | quote }}
+        deploymentconfig: {{ tpl .Values.name_with_suffix . | quote }}
         networking/ingress-allow-router: 'true'
     spec:
       volumes:
@@ -45,7 +45,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ tpl .Values.volumes.data . | quote }}
       containers:
-        - name: {{ .Values.name | quote }}
+        - name: {{ tpl .Values.name_with_suffix . | quote }}
           image: {{ print .Values.image ":" .Values.image_version | quote }}
           imagePullPolicy: Always
           ports:
@@ -63,8 +63,8 @@ spec:
               path: /health-check
               port: 8080
               scheme: HTTP
-            initialDelaySeconds: 30
-            timeoutSeconds: 1
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
           volumeMounts:
             - name: {{ tpl .Values.volumes.config . | quote }}
               mountPath: /opt/teamscale/config

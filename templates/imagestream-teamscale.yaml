@@ -1,7 +1,7 @@
 kind: ImageStream
 apiVersion: image.openshift.io/v1
 metadata:
-  name: {{ .Values.name | quote }}
+  name: {{ tpl .Values.name_with_suffix . | quote }}
   annotations:
     description: Keeps track of changes in the application image
 spec:

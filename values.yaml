@@ -1,5 +1,6 @@
 name: devc-teamscale
 version_suffix: 70x
+name_with_suffix: devc-teamscale-{{ .Values.version_suffix }}
 heap_limit_gb: 4
 num_workers: 4
 image: cqse/teamscale

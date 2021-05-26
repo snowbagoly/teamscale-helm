@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ .Values.name | quote }}
+  name: {{ tpl .Values.name_with_suffix . | quote }}
   namespace: {{ .Release.Namespace | quote }}
 spec:
   ports:
@@ -10,5 +10,5 @@ spec:
     port: 8080
     targetPort: 8080
   selector:
-    app: {{ .Values.name | quote }}
-    deploymentconfig: {{ .Values.name | quote }}
+    app: {{ tpl .Values.name_with_suffix . | quote }}
+    deploymentconfig: {{ tpl .Values.name_with_suffix . | quote }}
