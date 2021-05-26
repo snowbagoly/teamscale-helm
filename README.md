@@ -5,11 +5,11 @@ Prerequisites:
 - Download helm
 
 ## How to install Helm charts?
-1. Login to oc (token can be retrieved from app)
+1. Login to oc (token can be retrieved from app clicking on the ? icon > Command line tools > Copy Login Command)
 > oc login --token=&lt;token&gt; --server=https://api.sandbox.x8i5.p1.openshiftapps.com:6443
 2. Set TILLER_NAMESPACE as environment variable
 > set TILLER_NAMESPACE=&lt;your-namespace&gt;
-3. Start tiller container
+3. Start tiller container if not yet running
 > oc process -f https://github.com/openshift/origin/raw/master/examples/helm/tiller-template.yaml -p TILLER_NAMESPACE=&lt;your-namespace&gt; -p HELM_VERSION=v2.9.0 | oc create -f -
 4. Check tiller deployment status
 > oc rollout status deployment tiller
@@ -21,6 +21,12 @@ Prerequisites:
 > oc policy add-role-to-user edit "system:serviceaccount:&lt;your-namespace&gt;:tiller"
 8. Install your app with helm
 > helm install &lt;path-to-your-helmcharts-can-be-local-or-url&gt; -n &lt;arbitrary-release-name&gt;
+
+
+## How to debug Helm charts?
+1. Login to oc and set up helm as described in **How to install Helm charts**
+2. Run the following command to print all generated files:
+> helm install &lt;path-to-your-helmcharts-can-be-local-or-url&gt; --dry-run --debug
 
 
 ## How to add your docker login to pull images?
