@@ -29,6 +29,13 @@ Prerequisites:
 > helm install &lt;path-to-your-helmcharts-can-be-local-or-url&gt; --dry-run --debug
 
 
+## How to clean up a previous release?
+1. Login to oc and set up helm
+2. Look for the name of your previous release (a ConfigMap is created with the corresponding release name)
+3. Run the following command:
+> helm del --purge &lt;your-release-name&gt;
+4. Wait until everything is cleaned up (for me the deployment had to be deleted manually, otherwise the PVCs were also not cleaned up)
+
 ## How to add your docker login to pull images?
 1. Create a new secret
 > oc create secret docker-registry &lt;secret-name&gt; --docker-server=docker.io --docker-username=&lt;your-username&gt; --docker-password=&lt;your-access-token&gt; --docker-email=&lt;your-email&gt;
