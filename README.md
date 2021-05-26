@@ -36,6 +36,14 @@ Prerequisites:
 > helm del --purge &lt;your-release-name&gt;
 4. Wait until everything is cleaned up (for me the deployment had to be deleted manually, otherwise the PVCs were also not cleaned up)
 
+## How to update an existing release?
+Not sure that this will be possible with ARA, but it would make easier to apply small changes (e.g. patch update or change routes).
+0. Make your changes
+1. Login to oc and set up helm
+2. helm upgrade --install &lt;your-release-name&gt; &lt;path-to-your-helmcharts-can-be-local-or-url&gt;
+
+**Some of the fields (e.g. host name in route) are immutable, cannot be updated. To update them, you have to change the name of the object: this will result in deleting the previous object and creating a new one, so you have to be careful not to lose data. Once the update also set my PVCs to Terminating state (when changing my deployment name), which sounds a bit risky as they were just deleted when my previous pod scaled down to 0 - even though my new deployment wanted to use them.**
+
 ## How to add your docker login to pull images?
 1. Create a new secret
 > oc create secret docker-registry &lt;secret-name&gt; --docker-server=docker.io --docker-username=&lt;your-username&gt; --docker-password=&lt;your-access-token&gt; --docker-email=&lt;your-email&gt;
