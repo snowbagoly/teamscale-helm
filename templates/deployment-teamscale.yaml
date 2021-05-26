@@ -1,0 +1,84 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Values.name | quote }}
+  namespace: {{ .Values.namespace | quote }}
+  labels:
+    app: {{ .Values.name | quote }}
+    app.kubernetes.io/component: {{ .Values.name | quote }}
+    app.kubernetes.io/instance: {{ .Values.name | quote }}
+    app.kubernetes.io/part-of: teamscale-app
+    app.openshift.io/runtime-namespace: {{ .Values.namespace | quote }}
+spec:
+  strategy:
+    type: Recreate
+  triggers:
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      containerNames:
+      - {{ .Values.name | quote }}
+      from:
+        kind: ImageStreamTag
+        name: {{ print .Values.image ":" .Values.image_version | quote }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.name | quote }}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: {{ .Values.name | quote }}
+        deploymentconfig: {{ .Values.name | quote }}
+        networking/ingress-allow-router: 'true'
+    spec:
+      volumes:
+        - name: {{ .Values.config_volume | quote }}
+          configMap:
+            name: {{ .Values.config_volume | quote }}
+            defaultMode: 420
+        - name: {{ .Values.storage_volume | quote }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.storage_volume | quote }}
+        - name: {{ .Values.data_volume | quote }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.data_volume | quote }}
+      containers:
+        - name: {{ .Values.name | quote }}
+          image: {{ print .Values.image ":" .Values.image_version | quote }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health-check
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /health-check
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+          volumeMounts:
+            - name: {{ .Values.config_volume | quote }}
+              mountPath: /opt/teamscale/config
+            - name: {{ .Values.storage_volume | quote }}
+              mountPath: /opt/teamscale/storage
+            - name: {{ .Values.data_volume | quote }}
+              mountPath: /opt/teamscale/workspace
+              subPath: workspace
+            - name: {{ .Values.data_volume | quote }}
+              mountPath: /opt/teamscale/backup
+              subPath: backup
+            - name: {{ .Values.data_volume | quote }}
+              mountPath: /opt/teamscale/logs
+              subPath: logs
+          resources:
+            limits:
+              memory: {{ .Values.memory_limit | quote }}

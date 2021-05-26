@@ -1,0 +1,14 @@
+name: devc-teamscale
+# TODO change to specific OpenShift namespace
+namespace: borbelyzs-dev
+memory_limit: 4Gi
+image: cqse/teamscale
+image_version: 7.0.2
+# TODO change to specific host name
+host_name: teamscale-borbelyzs-dev.apps.sandbox.x8i5.p1.openshiftapps.com
+# TODO license is not added to this configmap template
+config_volume: teamscale-config-70x
+storage_volume: teamscale-storage-70x
+data_volume: teamscale-data-70x
+storage_volume_size: 2Gi
+data_volume_size: 2Gi
