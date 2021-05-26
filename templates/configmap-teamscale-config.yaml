@@ -1,7 +1,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ .Values.config_volume | quote }}
+  name: {{ tpl .Values.volumes.config . | quote }}
   namespace: {{ .Release.Namespace | quote }}
 data:
   cache4j.config: |-
