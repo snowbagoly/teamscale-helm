@@ -2,7 +2,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: {{ .Values.name | quote }}
-  namespace: {{ .Values.namespace | quote }}
+  namespace: {{ .Release.Namespace | quote }}
 spec:
   ports:
   - name: 8080-tcp

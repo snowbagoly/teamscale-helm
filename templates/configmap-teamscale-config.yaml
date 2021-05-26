@@ -2,7 +2,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: {{ .Values.config_volume | quote }}
-  namespace: {{ .Values.namespace | quote }}
+  namespace: {{ .Release.Namespace | quote }}
 data:
   cache4j.config: |-
     # cache4j configuration for Teamscale
@@ -20,7 +20,7 @@ data:
     # cache everything else memory sensitive
     .* -> THREADLOCAL:MEMORY:0
   jvm.properties: >-
-    JVM_MEMORY=4096m
+    JVM_MEMORY={{ .Values.heap_limit_gb }}G
 
 
     # setting JCo library timeout to 60 minutes. Avoids blocking the system if
@@ -108,7 +108,7 @@ data:
 
     # The number of workers, defaults to 2
 
-    engine.workers=2
+    engine.workers={{ .Values.num_workers }}
 
     # The identifying name of the Teamscale instance.
 

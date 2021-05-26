@@ -1,14 +1,17 @@
 name: devc-teamscale
-# TODO change to specific OpenShift namespace
-namespace: borbelyzs-dev
-memory_limit: 4Gi
+version_suffix: 70x
+heap_limit_gb: 4
+num_workers: 4
 image: cqse/teamscale
 image_version: 7.0.2
 # TODO change to specific host name
 host_name: teamscale-borbelyzs-dev.apps.sandbox.x8i5.p1.openshiftapps.com
 # TODO license is not added to this configmap template
-config_volume: teamscale-config-70x
-storage_volume: teamscale-storage-70x
-data_volume: teamscale-data-70x
-storage_volume_size: 2Gi
-data_volume_size: 2Gi
+volumes:
+  # The values containing another template value has to be printed by using tpl,
+  # e.g. {{ tpl .Values.volumes.config . }}
+  config: teamscale-config-{{ .Values.version_suffix }}
+  storage: teamscale-storage-{{ .Values.version_suffix }}
+  storage_size: 2Gi
+  data: teamscale-data-{{ .Values.version_suffix }}
+  data_size: 2Gi
