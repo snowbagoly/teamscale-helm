@@ -1,0 +1,19 @@
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: {{ tpl .Values.name_with_suffix . | quote }}
+  annotations:
+    description: Keeps track of changes in the application image
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - name: {{ .Values.image_version | quote }}
+      from:
+        kind: DockerImage
+        name: {{ print .Values.image ":" .Values.image_version | quote }}
+      generation: 2
+      importPolicy:
+        insecure: true
+      referencePolicy:
+        type: Local

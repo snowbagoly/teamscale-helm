@@ -1,0 +1,173 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ tpl .Values.volumes.config . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+data:
+  cache4j.config: |-
+    # cache4j configuration for Teamscale
+    # This file can be used to configure all caches centrally
+    #
+    # Each rule has the format "PATTERN -> THREAD:STRATEGY:PARAMETER", where 
+    # * PATTERN is a regular expression used for matching, 
+    # * THREAD is one of NONE, SYNCHRONIZED, THREADLOCAL,
+    # * STRATEGY is one of OFF, SINGLE, LRU, MEMORY, UNLIMITED
+    # * PARAMETER is a parameter (currently only used for LRU)
+
+    # manage line-offset conversions with a 10 element LRU cache
+    .*TextElementUtils -> THREADLOCAL:LRU:10
+
+    # cache everything else memory sensitive
+    .* -> THREADLOCAL:MEMORY:0
+  jvm.properties: >-
+    JVM_MEMORY={{ .Values.heap_limit_gb }}G
+
+
+    # setting JCo library timeout to 60 minutes. Avoids blocking the system if
+    ABAP synchronization hangs.
+
+    # Second option ensures that no stack traces are lost, see
+    https://stackoverflow.com/questions/2411487/nullpointerexception-in-java-with-no-stacktrace
+
+    # Third option enables NTLM and Negotiate support for the SVN connector
+
+    JVM_EXTRA_ARGS=-Djco.session_timeout=60 -XX:-OmitStackTraceInFastThrow
+    -Dsvnkit.http.methods=Basic,Digest,Negotiate,NTLM
+  log4j2.yaml: >-
+    # Configuration of how and where log4j 2 writes Teamscale log entries
+
+    # See https://logging.apache.org/log4j/2.x/manual/layouts.html for
+    documentation of this file format
+
+
+    Configuration:
+      status: "off" # disable the internal log4j status logger (which would log the status of the log4j configuration)
+      name: Teamscale
+      monitorInterval: 60 # Log4j 2 config (this file) is monitored for changes every 60 seconds
+      packages: org.conqat.engine.core.logging # custom packages. This one contains our log4j 2 API implementations (e.g., TeamscaleLogAppender)
+
+      appenders: # The appenders define how messages are logged.
+
+        Console: # Console appender used to make sure that fatal entries reach the user (e.i. nohup.out on linux dists, or docker runs)
+          name: ConsoleErrorAppender
+          target: SYSTEM_ERR
+          PatternLayout:
+            # See https://logging.apache.org/log4j/2.x/manual/layouts.html
+            Pattern: "* %-5level [%threadName] %date:%variablesNotEmpty{ %mdc{job}:} %message%n"
+
+        RollingFile: # This appender writes all log entries to a list of files (overwriting old files eventually)
+          name: TeamscaleLogFile
+          fileName: logs/teamscale.log
+          filePattern: logs/teamscale-%i.log
+          policies:
+            SizeBasedTriggeringPolicy:
+              size: 1MB
+          DefaultRolloverStrategy:
+            max: 10
+          PatternLayout:
+            Pattern: "* %-5level [%threadName] %date:%variablesNotEmpty{ %mdc{job,trigger,project,commit}:} %message%n"
+          Filters:
+            RegexFilter: # filters messages from this appender based on regex (matching log messages are ignored)
+              regex: ".*Couldn't find physical processor count.*"
+              onMatch: DENY
+              onMismatch: NEUTRAL
+
+        TeamscaleLog: # This appender handles the Teamscale-internal logging (i.e., the log messages we show in the system perspective)
+          name: TeamscaleLogAppender
+
+      Loggers: # The loggers define which messages are routed to which appenders.
+        Root:
+          level: warn # we drop everything below warn level
+          AppenderRef:
+            - ref: TeamscaleLogFile
+            - ref: TeamscaleLogAppender
+            - ref: ConsoleErrorAppender
+              level: fatal # nothing below fatal is forwarded to the ConsoleErrorAppender
+  teamscale.properties: >-
+    # The server port for HTTP, defaults to 8080. When using HTTPS, this may be
+    set to 0 for disabling HTTP
+
+    # server.port=8080
+
+    # The URL prefix, defaults to empty.
+
+    # server.urlprefix=teamscale
+
+    # The bind address, defaults to none.
+
+    # server.bind-hostname=localhost
+
+    # The directory used by the storage system, defaults to 'storage' within the
+    Teamscale installation directory
+
+    # database.directory=/local/teamscale/storage
+
+    # The cache size used by the database in MB, defaults to 512
+
+    # database.cache-size=
+
+    # The number of workers, defaults to 2
+
+    engine.workers={{ .Values.num_workers }}
+
+    # The identifying name of the Teamscale instance.
+
+    # instance.name=
+
+    # Log level for logging service calls. Defaults to WARN
+
+    # servicelog.loglevel=
+
+    # Whether to log the user of service calls, defaults to false
+
+    # servicelog.loguser=
+
+    # The database type. One of leveldb, rocksdb, h2mv, xodus, or memory
+    (in-memory database, only for development). Please note that this is an
+    expert option.
+
+    database.type=leveldb
+
+    # Enables sharding to multiple sub databases. This can increase performance
+    if you have a fast disk that is not saturated
+
+    # or you have a very huge database (> 1 TB). This is an expert option and
+    should not be changed if a store already exists,
+
+    # as this might lead to data corruption
+
+    # Enables sharding with random distribution of projects to shards
+
+    # database.sharding=randomized:5
+
+    # Enables sharding based on patterns. This example would make a shard GLOB
+    with the global data, a shard CLUSTER1 with all
+
+    # projects starting with 'foo_' and a shard CLUSTER2 with everything else.
+    The strategy for picking the shard is "first match",
+
+    # so patterns may overlap.
+
+    # database.sharding=pattern:GLOB:.*global.*:CLUSTER1:foo_.*:CLUSTER2:.*
+
+    # The port to use for HTTPS.
+
+    # https.port=443
+
+    # The absolute path to the Java keystore containing the certificate and
+    private key to be used
+
+    # https.keystore-path=
+
+    # The password for the keystore
+
+    # https.keystore-password=
+
+    # The alias of the certificate and private key to be used
+
+    # https.certificate-alias=
+
+    # The directory containing custom checks bundled in JARs. Defaults to
+    'custom-checks' in the Teamscale installation directory.
+
+    # custom-checks.dir=

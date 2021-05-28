@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ tpl .Values.name_with_suffix . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  ports:
+  - name: 8080-tcp
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: {{ tpl .Values.name_with_suffix . | quote }}
+    deploymentconfig: {{ tpl .Values.name_with_suffix . | quote }}

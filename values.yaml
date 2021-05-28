@@ -1,0 +1,18 @@
+name: devc-teamscale
+version_suffix: 70x
+name_with_suffix: devc-teamscale-{{ .Values.version_suffix }}
+heap_limit_gb: 4
+num_workers: 4
+image: cqse/teamscale
+image_version: 7.0.2
+# TODO change to specific host name
+host_name: teamscale-borbelyzs-dev.apps.sandbox.x8i5.p1.openshiftapps.com
+# TODO license is not added to this configmap template
+volumes:
+  # The values containing another template value has to be printed by using tpl,
+  # e.g. {{ tpl .Values.volumes.config . }}
+  config: teamscale-config-{{ .Values.version_suffix }}
+  storage: teamscale-storage-{{ .Values.version_suffix }}
+  storage_size: 2Gi
+  data: teamscale-data-{{ .Values.version_suffix }}
+  data_size: 2Gi
