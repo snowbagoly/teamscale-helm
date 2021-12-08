@@ -1,0 +1,7 @@
+apiVersion: v1
+name: teamscale-helm
+version: 0.1
+appVersion: "7.0.x"
+description: An example setup of Teamscale with Helm charts on Kubernetes.
+keywords:
+  - app=teamscale

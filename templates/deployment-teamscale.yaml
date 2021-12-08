@@ -1,0 +1,87 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ tpl .Values.instance.nameWithSuffix . | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ tpl .Values.instance.nameWithSuffix . | quote }}
+  template:
+    metadata:
+      labels:
+        app: {{ tpl .Values.instance.nameWithSuffix . | quote }}
+        version: {{ .Values.instance.versionSuffix | quote }}
+    spec:
+      volumes:
+        - name: {{ tpl .Values.instance.configVolumeName . | quote }}
+          configMap:
+            name: {{ tpl .Values.instance.configVolumeName . | quote }}
+            defaultMode: 420
+        - name: {{ .Values.volumes.license | quote }}
+          configMap:
+            name: {{ .Values.volumes.license | quote }}
+            defaultMode: 420
+        - name: {{ tpl .Values.instance.storageVolumeName . | quote }}
+          persistentVolumeClaim:
+            claimName: {{ tpl .Values.instance.storageVolumeName . | quote }}
+        - name: {{ tpl .Values.instance.dataVolumeName . | quote }}
+          persistentVolumeClaim:
+            claimName: {{ tpl .Values.instance.dataVolumeName . | quote }}
+      containers:
+        - name: {{ tpl .Values.instance.nameWithSuffix . | quote }}
+          image: {{ tpl .Values.instance.imagePath . }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/health-check
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /api/health-check
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: {{ tpl .Values.instance.configVolumeName . | quote }}
+              mountPath: /opt/teamscale/config/cache4j.config
+              subPath: cache4j.config
+            - name: {{ tpl .Values.instance.configVolumeName . | quote }}
+              mountPath: /opt/teamscale/config/jvm.properties
+              subPath: jvm.properties
+            - name: {{ tpl .Values.instance.configVolumeName . | quote }}
+              mountPath: /opt/teamscale/config/log4j2.yaml
+              subPath: log4j2.yaml
+            - name: {{ tpl .Values.instance.configVolumeName . | quote }}
+              mountPath: /opt/teamscale/config/teamscale.properties
+              subPath: teamscale.properties
+            - name: {{ .Values.volumes.license | quote }}
+              mountPath: /opt/teamscale/config/teamscale.license
+              subPath: teamscale.license
+            - name: {{ tpl .Values.instance.storageVolumeName . | quote }}
+              mountPath: /opt/teamscale/storage
+            - name: {{ tpl .Values.instance.dataVolumeName . | quote }}
+              mountPath: /opt/teamscale/workspace
+              subPath: {{ print (tpl .Values.instance.nameWithSuffix .) "/workspace" | quote }}
+            - name: {{ tpl .Values.instance.dataVolumeName . | quote }}
+              mountPath: /opt/teamscale/backup
+              subPath: {{ print (tpl .Values.instance.nameWithSuffix .) "/backup" | quote }}
+            - name: {{ tpl .Values.instance.dataVolumeName . | quote }}
+              mountPath: /opt/teamscale/logs
+              subPath: {{ print (tpl .Values.instance.nameWithSuffix .) "/logs" | quote }}
+            - name: {{ tpl .Values.instance.dataVolumeName . | quote }}
+              mountPath: /opt/teamscale/workspace/sap.abap.system
+              subPath: shared-sap-repos/sap.abap.system
+          resources:
+            limits:
+              memory: {{ print .Values.instance.heapLimitGb "Gi" | quote }}

@@ -1,0 +1,27 @@
+# Pattern for accessing the parameters :{{.Values.parameterName}}
+# The values containing another template value has to be printed by using tpl,
+# e.g. {{ tpl .Values.instance.imagePath . }}
+
+# Deployment Target
+projectName: "teamscale"
+
+# Teamscale configuration
+instance:
+  name: "Local"
+  versionSuffix: 70x
+  imageVersion: 7.0.2
+  heapLimitGb: 10
+  numWorkers: 4
+  
+  imagePath: "cqse/teamscale:{{ .Values.instance.imageVersion }}"
+  nameWithSuffix: "{{ .Values.projectName }}-{{ .Values.instance.versionSuffix }}"
+  configVolumeName: teamscale-config-{{ .Values.instance.versionSuffix }}
+  storageVolumeName: teamscale-storage-{{ .Values.instance.versionSuffix }}
+
+  # data is recommended to be stored on an NFS volume
+  dataVolumeName: teamscale-data-{{ .Values.instance.versionSuffix }}
+
+volumes:
+  storageSize: 5Gi
+  dataSize: 5Gi
+  license: teamscale-license
